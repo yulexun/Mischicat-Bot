@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>修仙世界 - 玩家统计仪表板</title>
     <style>
+        :root {
+            --bg-dark: #111111;
+            --bg-mid: #2a2a2a;
+            --surface: #ffffff;
+            --surface-alt: #f4f4f4;
+            --border: #d9d9d9;
+            --text-main: #1f1f1f;
+            --text-muted: #666666;
+            --accent: #222222;
+            --accent-hover: #000000;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,10 +25,10 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
             min-height: 100vh;
             padding: 20px;
-            color: #333;
+            color: var(--text-main);
         }
 
         .container {
@@ -73,7 +85,7 @@
         .stat-card .value {
             font-size: 2.5em;
             font-weight: bold;
-            color: #667eea;
+            color: var(--accent);
         }
 
         .controls {
@@ -97,14 +109,14 @@
             width: 100%;
             padding: 12px 20px;
             font-size: 1em;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border);
             border-radius: 25px;
             outline: none;
             transition: border-color 0.3s ease;
         }
 
         .search-box input:focus {
-            border-color: #667eea;
+            border-color: var(--accent);
         }
 
         .filter-group {
@@ -115,9 +127,9 @@
 
         .filter-btn {
             padding: 10px 20px;
-            border: 2px solid #667eea;
+            border: 2px solid var(--accent);
             background: white;
-            color: #667eea;
+            color: var(--accent);
             border-radius: 20px;
             cursor: pointer;
             font-size: 0.9em;
@@ -125,18 +137,18 @@
         }
 
         .filter-btn:hover {
-            background: #667eea;
+            background: var(--accent);
             color: white;
         }
 
         .filter-btn.active {
-            background: #667eea;
+            background: var(--accent);
             color: white;
         }
 
         .refresh-btn {
             padding: 10px 20px;
-            background: #667eea;
+            background: var(--accent);
             color: white;
             border: none;
             border-radius: 20px;
@@ -146,7 +158,7 @@
         }
 
         .refresh-btn:hover {
-            background: #764ba2;
+            background: var(--accent-hover);
         }
 
         .table-container {
@@ -162,7 +174,7 @@
         }
 
         thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
             color: white;
         }
 
@@ -185,7 +197,7 @@
         }
 
         tbody tr:hover {
-            background: #f8f9ff;
+            background: var(--surface-alt);
         }
 
         .badge {
@@ -197,18 +209,18 @@
         }
 
         .badge.alive {
-            background: #d4edda;
-            color: #155724;
+            background: #ececec;
+            color: #111111;
         }
 
         .badge.dead {
-            background: #f8d7da;
-            color: #721c24;
+            background: #2b2b2b;
+            color: #ffffff;
         }
 
         .badge.realm {
-            background: #e7f3ff;
-            color: #004085;
+            background: #efefef;
+            color: #222222;
         }
 
         .loading {
@@ -256,20 +268,20 @@
         .page-btn {
             padding: 8px 15px;
             background: white;
-            border: 2px solid #667eea;
-            color: #667eea;
+            border: 2px solid var(--accent);
+            color: var(--accent);
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .page-btn:hover {
-            background: #667eea;
+            background: var(--accent);
             color: white;
         }
 
         .page-btn.active {
-            background: #667eea;
+            background: var(--accent);
             color: white;
         }
 
@@ -348,6 +360,9 @@
                         <th onclick="sortTable('lifespan')">寿元 <span class="sort-icon">▼</span></th>
                         <th>灵根</th>
                         <th>宗门</th>
+                        <th>修炼状态</th>
+                        <th onclick="sortTable('cultivating_years')">闭关设定 <span class="sort-icon">▼</span></th>
+                        <th onclick="sortTable('is_cultivating')">闭关剩余 <span class="sort-icon">▼</span></th>
                         <th>所在城市</th>
                         <th>状态</th>
                         <th onclick="sortTable('last_active')">最后活跃 <span class="sort-icon">▼</span></th>
@@ -486,6 +501,9 @@
                     <td>${player.lifespan} / ${player.lifespan_max}</td>
                     <td>${player.spirit_root}</td>
                     <td>${player.sect || '-'}</td>
+                    <td>${player.cultivation_status || '-'}</td>
+                    <td>${player.cultivating_years_display || '-'}</td>
+                    <td>${player.retreat_remaining || '-'}</td>
                     <td>${player.current_city}</td>
                     <td><span class="badge ${statusClass}">${statusText}</span></td>
                     <td>${player.last_active_formatted}</td>

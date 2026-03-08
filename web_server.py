@@ -1,5 +1,6 @@
 import os
 import json
+import time
 from datetime import datetime
 from flask import Flask, jsonify, render_template
 from utils.db import get_conn
@@ -15,6 +16,14 @@ def format_timestamp(timestamp):
     return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 
+def format_remaining_years(seconds):
+    """Convert remaining seconds to cultivation years (2 decimal places)."""
+    if not seconds or seconds <= 0:
+        return "-"
+    years = seconds / (2 * 3600)
+    return f"{years:.2f} 年"
+
+
 def get_all_players():
     """Fetch all players from database"""
     with get_conn() as conn:
@@ -24,6 +33,7 @@ def get_all_players():
                 comprehension, physique, fortune, bone, soul,
                 lifespan, lifespan_max, cultivation, realm,
                 spirit_stones, reputation, created_at, last_active,
+                cultivating_until, cultivating_years,
                 is_dead, rebirth_count, is_virgin, sect, sect_rank,
                 techniques, current_city, explore_count, cave,
                 discovered_sects, escape_rate, has_bahongchen
@@ -32,6 +42,7 @@ def get_all_players():
         """).fetchall()
     
     players = []
+    now = time.time()
     for row in rows:
         player = dict(row)
         # Parse JSON fields
@@ -54,6 +65,21 @@ def get_all_players():
         
         # Status
         player['status'] = '已坐化' if player['is_dead'] else '健在'
+
+        # Cultivation/retreat status
+        cultivating_until = player.get('cultivating_until')
+        cultivating_until_ts = float(cultivating_until) if cultivating_until is not None else 0.0
+        is_cultivating = (
+            player['is_dead'] == 0
+            and cultivating_until is not None
+            and cultivating_until_ts > now
+        )
+        remaining_seconds = (cultivating_until_ts - now) if is_cultivating else 0
+        player['cultivating_years_display'] = f"{player['cultivating_years']} 年" if player.get('cultivating_years') else '-'
+        player['is_cultivating'] = 1 if is_cultivating else 0
+        player['cultivation_status'] = '闭关中' if is_cultivating else '空闲'
+        player['retreat_remaining'] = format_remaining_years(remaining_seconds)
+        player['cultivating_until_formatted'] = format_timestamp(cultivating_until) if is_cultivating else '-'
         
         players.append(player)
     
