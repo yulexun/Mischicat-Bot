@@ -5,12 +5,18 @@ const itemsPerPage = 20;
 let currentFilter = "all";
 let currentSort = { column: "cultivation", ascending: false };
 
+function setHidden(id, hidden) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.toggle("is-hidden", hidden);
+}
+
 async function loadData() {
     try {
-        document.getElementById("loading").style.display = "block";
-        document.getElementById("error").style.display = "none";
-        document.getElementById("playersTable").style.display = "none";
-        document.getElementById("noData").style.display = "none";
+        setHidden("loading", false);
+        setHidden("error", true);
+        setHidden("playersTable", true);
+        setHidden("noData", true);
 
         const playersResponse = await fetch("/api/players");
         const playersData = await playersResponse.json();
@@ -32,7 +38,7 @@ async function loadData() {
             document.getElementById("totalStones").textContent = statsData.stats.total_spirit_stones.toLocaleString();
         }
 
-        document.getElementById("loading").style.display = "none";
+        setHidden("loading", true);
         document.getElementById("lastUpdate").textContent =
             "最后更新: " + new Date().toLocaleString("zh-CN");
 
@@ -40,8 +46,8 @@ async function loadData() {
         renderTable();
         loadQuests();
     } catch (error) {
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("error").style.display = "block";
+        setHidden("loading", true);
+        setHidden("error", false);
         document.getElementById("error").textContent = "加载失败: " + error.message;
     }
 }
@@ -90,14 +96,14 @@ function renderTable() {
     tbody.innerHTML = "";
 
     if (filteredPlayers.length === 0) {
-        document.getElementById("playersTable").style.display = "none";
-        document.getElementById("noData").style.display = "block";
+        setHidden("playersTable", true);
+        setHidden("noData", false);
         document.getElementById("pagination").innerHTML = "";
         return;
     }
 
-    document.getElementById("playersTable").style.display = "table";
-    document.getElementById("noData").style.display = "none";
+    setHidden("playersTable", false);
+    setHidden("noData", true);
 
     const start = (currentPage - 1) * itemsPerPage;
     const end = start + itemsPerPage;
@@ -237,10 +243,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadQuests() {
     try {
-        document.getElementById("questLoading").style.display = "block";
-        document.getElementById("questError").style.display = "none";
+        setHidden("questPanel", false);
+        setHidden("questLoading", false);
+        setHidden("questError", true);
         document.getElementById("questList").innerHTML = "";
-        document.getElementById("noQuests").style.display = "none";
+        setHidden("noQuests", true);
 
         const response = await fetch("/api/quests");
         const data = await response.json();
@@ -249,20 +256,19 @@ async function loadQuests() {
             throw new Error(data.error || "加载任务失败");
         }
 
-        document.getElementById("questLoading").style.display = "none";
+        setHidden("questLoading", true);
+
+        document.getElementById("questCount").textContent = data.total;
 
         if (data.total === 0) {
-            document.getElementById("noQuests").style.display = "block";
-            document.getElementById("questPanel").style.display = "none";
+            setHidden("noQuests", false);
             return;
         }
 
-        document.getElementById("questPanel").style.display = "block";
-        document.getElementById("questCount").textContent = data.total;
         renderQuests(data.quests);
     } catch (error) {
-        document.getElementById("questLoading").style.display = "none";
-        document.getElementById("questError").style.display = "block";
+        setHidden("questLoading", true);
+        setHidden("questError", false);
         document.getElementById("questError").textContent = "加载任务失败: " + error.message;
     }
 }

@@ -1,0 +1,441 @@
+:root {
+    --bg-dark: #111111;
+    --bg-mid: #2a2a2a;
+    --surface: #ffffff;
+    --surface-alt: #f4f4f4;
+    --border: #d9d9d9;
+    --text-main: #1f1f1f;
+    --text-muted: #666666;
+    --accent: #222222;
+    --accent-hover: #000000;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: var(--text-main);
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+header {
+    text-align: center;
+    color: white;
+    padding: 30px 0;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.last-update {
+    font-size: 0.9em;
+    margin-top: 10px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+}
+
+.stat-card h3 {
+    font-size: 0.9em;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+}
+
+.stat-card .value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: var(--accent);
+}
+
+.controls {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 1em;
+    border: 2px solid var(--border);
+    border-radius: 25px;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.search-box input:focus {
+    border-color: var(--accent);
+}
+
+.filter-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 10px 20px;
+    border: 2px solid var(--accent);
+    background: white;
+    color: var(--accent);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background: var(--accent);
+    color: white;
+}
+
+.filter-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+.refresh-btn {
+    padding: 10px 20px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: all 0.3s ease;
+}
+
+.refresh-btn:hover {
+    background: var(--accent-hover);
+}
+
+.table-container {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: linear-gradient(135deg, #1a1a1a 0%, #3a3a3a 100%);
+    color: white;
+}
+
+th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+tbody tr {
+    transition: background 0.2s ease;
+}
+
+tbody tr:hover {
+    background: var(--surface-alt);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge.alive {
+    background: #ececec;
+    color: #111111;
+}
+
+.badge.dead {
+    background: #2b2b2b;
+    color: #ffffff;
+}
+
+.badge.realm {
+    background: #efefef;
+    color: #222222;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: white;
+    font-size: 1.2em;
+}
+
+.error {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.no-data {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.sort-icon {
+    cursor: pointer;
+    user-select: none;
+    display: inline-block;
+    margin-left: 5px;
+    opacity: 0.5;
+}
+
+.sort-icon.active {
+    opacity: 1;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    padding: 8px 15px;
+    background: white;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.page-btn:hover {
+    background: var(--accent);
+    color: white;
+}
+
+.page-btn.active {
+    background: var(--accent);
+    color: white;
+}
+
+.page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Quest Panel Styles */
+.quest-panel {
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+
+.quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--border);
+}
+
+.quest-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+    color: var(--accent);
+}
+
+.quest-badge {
+    background: var(--accent);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.9em;
+    font-weight: bold;
+}
+
+.quest-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.quest-item {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.quest-item:hover {
+    border-color: var(--accent);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.quest-item.complete {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #f0fff4 0%, #ffffff 100%);
+}
+
+.quest-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.quest-title {
+    font-weight: bold;
+    font-size: 1.1em;
+    color: var(--accent);
+    margin-bottom: 5px;
+}
+
+.quest-status {
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.quest-status.progress {
+    background: #ffc107;
+    color: #000;
+}
+
+.quest-status.complete {
+    background: #28a745;
+    color: white;
+}
+
+.quest-player {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.quest-desc {
+    color: #555;
+    font-size: 0.85em;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.quest-time {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: #888;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.quest-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 0.75em;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+.quest-type-badge.combat {
+    background: #dc3545;
+    color: white;
+}
+
+.quest-type-badge.gather {
+    background: #17a2b8;
+    color: white;
+}
+
+.is-hidden {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .table-container {
+        overflow-x: auto;
+    }
+
+    table {
+        min-width: 800px;
+    }
+
+    header h1 {
+        font-size: 1.8em;
+    }
+
+    .quest-list {
+        grid-template-columns: 1fr;
+    }
+}
