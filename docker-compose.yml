@@ -9,6 +9,18 @@ services:
       - sqlite-data:/app/sqlite-data
     restart: unless-stopped
 
+  web-dashboard:
+    image: mischicat-bot:latest
+    container_name: mischicat-web-dashboard
+    env_file:
+      - .env
+    volumes:
+      - sqlite-data:/app/sqlite-data
+    ports:
+      - "${WEB_PORT:-5000}:5000"
+    command: python web_server.py
+    restart: unless-stopped
+
 volumes:
   sqlite-data:
     driver: local
