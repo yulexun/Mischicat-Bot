@@ -13,6 +13,7 @@ RUN mkdir -p utils
 # Copy only necessary files for web dashboard
 COPY web_server.py .
 COPY templates/ ./templates/
+COPY static/ ./static/
 COPY utils/__init__.py ./utils/
 COPY utils/db.py ./utils/
 COPY utils/realms.py ./utils/
