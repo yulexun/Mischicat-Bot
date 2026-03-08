@@ -115,15 +115,15 @@ function renderTable() {
         const statusText = player.is_dead === 0 ? "健在" : "已坐化";
 
         // Discovered sects
+
         let sects = Array.isArray(player.discovered_sects) && player.discovered_sects.length > 0
-            ? player.discovered_sects.map(s => `<span class='badge realm'>${s}</span>`).join(' ')
+            ? `<div class='player-sects'>` + player.discovered_sects.map(s => `<span class='badge realm'>${s}</span>`).join(' ') + `</div>`
             : '-';
 
-        // Equipped techniques
         let equipped = Array.isArray(player.techniques)
-            ? player.techniques.filter(t => t.equipped).map(t =>
+            ? `<div class='player-techniques'>` + player.techniques.filter(t => t.equipped).map(t =>
                 `<span class='badge'>${t.name} <small>(${t.grade}, ${t.stage})</small></span>`
-            ).join(' ') : '-';
+            ).join(' ') + `</div>` : '-';
 
         row.innerHTML = `
             <td><strong>${player.name}</strong></td>
