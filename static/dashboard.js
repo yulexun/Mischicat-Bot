@@ -45,7 +45,7 @@ async function loadData() {
 
         applyFilters();
         renderTable();
-        loadQuests();
+        loadPublicEvents();
     } catch (error) {
         setHidden("loading", true);
         setHidden("error", false);
@@ -218,7 +218,7 @@ function sortTable(column) {
 function bindEvents() {
     document.getElementById("refreshBtn").addEventListener("click", () => {
         loadData();
-        loadQuests();
+        loadPublicEvents();
     });
 
     document.getElementById("searchInput").addEventListener("input", () => {
