@@ -40,7 +40,7 @@ class WorldMenuView(discord.ui.View):
 
     @discord.ui.button(label="秘地", style=discord.ButtonStyle.secondary)
     async def regions_btn(self, interaction: discord.Interaction, button: discord.ui.Button):
-        embed = discord.Embed(title="✦ 特殊秘地 ✦", description="天地间散布着十处特殊秘地，各有奇险：", color=discord.Color.gold())
+        embed = discord.Embed(title="✦ 特殊秘地 ✦", description="天地间散布着十二处特殊秘地，各有奇险：", color=discord.Color.gold())
         for r in SPECIAL_REGIONS:
             req = f"（需 {r['min_realm']} 以上）" if r["min_realm"] != "炼气期1层" else ""
             embed.add_field(name=f"{r['name']}  [{r['type']}]{req}", value=r["desc"], inline=False)

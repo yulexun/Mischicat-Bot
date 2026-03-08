@@ -5,6 +5,9 @@ from utils.events.common_4 import EVENTS as _e4
 from utils.events.common_5 import EVENTS as _e5
 from utils.events.common_6 import EVENTS as _e6
 from utils.events.common_7 import EVENTS as _e7
+from utils.events.common_8 import EVENTS as _e8
+from utils.events.common_9 import EVENTS as _e9
+from utils.events.common_10 import EVENTS as _e10
 from utils.events.rare_1 import EVENTS as _rare1
 from utils.events.rare_2 import EVENTS as _rare2
 from utils.events.rare_3 import EVENTS as _rare3
@@ -26,7 +29,7 @@ from utils.events.city_combat_2 import EVENTS as _city_combat2
 from utils.events.city_culture import EVENTS as _city_culture
 from utils.events.city_culture_2 import EVENTS as _city_culture2
 
-EVENTS = _e1 + _e2 + _e3 + _e4 + _e5 + _e6 + _e7
+EVENTS = _e1 + _e2 + _e3 + _e4 + _e5 + _e6 + _e7 + _e8 + _e9 + _e10
 RARE_EVENTS = _rare1 + _rare2 + _rare3
 
 REGION_EVENTS = {

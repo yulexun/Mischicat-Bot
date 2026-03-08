@@ -19,6 +19,9 @@ def _get_player(discord_id: str):
         return dict(row) if row else None
 
 
+QUALITY_EMOJI = {"普通": "⬜", "精良": "🟩", "稀有": "🟦", "史诗": "🟪", "传说": "🟨"}
+
+
 def _reward_lines(rewards: dict) -> list[str]:
     lines = []
     stat_names = {"comprehension": "悟性", "physique": "体魄", "fortune": "机缘",
@@ -38,10 +41,18 @@ def _reward_lines(rewards: dict) -> list[str]:
     if rewards.get("stat_bonus"):
         for stat, val in rewards["stat_bonus"].items():
             lines.append(f"{stat_names.get(stat, stat)} 永久 +{val}")
+    if rewards.get("equipment"):
+        eq = rewards["equipment"]
+        chance = eq.get("chance", 1.0)
+        quality_hint = eq.get("quality", "随机")
+        if chance < 1.0:
+            lines.append(f"装备：{QUALITY_EMOJI.get(quality_hint, '🎲')} {quality_hint}品质（{int(chance*100)}% 概率）")
+        else:
+            lines.append(f"装备：{QUALITY_EMOJI.get(quality_hint, '🎲')} {quality_hint}品质（必得）")
     return lines
 
 
-def _apply_quest_rewards(uid: str, rewards: dict):
+def _apply_quest_rewards(uid: str, rewards: dict, player: dict = None):
     fields = []
     values = []
     for key in ["spirit_stones", "reputation", "cultivation", "lifespan"]:
@@ -74,6 +85,24 @@ def _apply_quest_rewards(uid: str, rewards: dict):
                 conn.execute("UPDATE players SET techniques = ? WHERE discord_id = ?",
                              (json.dumps(techs, ensure_ascii=False), uid))
                 conn.commit()
+    if rewards.get("equipment"):
+        from utils.equipment import generate_equipment, get_player_tier
+        from utils.db import give_equipment
+        eq_spec = rewards["equipment"]
+        chance = eq_spec.get("chance", 1.0)
+        if random.random() < chance:
+            p = player or _get_player(uid)
+            tier = get_player_tier(p["realm"]) if p else 0
+            quality_pool = eq_spec.get("quality_pool")
+            quality_weights = eq_spec.get("quality_weights")
+            if quality_pool and quality_weights:
+                quality = random.choices(quality_pool, weights=quality_weights, k=1)[0]
+            else:
+                quality = eq_spec.get("quality")
+            slot = eq_spec.get("slot")
+            eq = generate_equipment(tier=tier, quality=quality, slot=slot if slot != "any" else None)
+            give_equipment(uid, eq)
+            rewards["_generated_equipment"] = eq
 
 
 def _clear_quest(uid: str):
@@ -186,8 +215,12 @@ class TavernCog(commands.Cog, name="Tavern"):
         embed.add_field(name="战力对比", value=f"你{party_note}：**{player_power:.1f}** vs {enemy['name']}：**{enemy_power:.1f}**", inline=False)
 
         if won:
-            _apply_quest_rewards(uid, q["rewards"])
-            embed.add_field(name="获得奖励", value="\n".join(_reward_lines(q["rewards"])), inline=False)
+            _apply_quest_rewards(uid, q["rewards"], player)
+            lines = _reward_lines(q["rewards"])
+            eq = q["rewards"].get("_generated_equipment")
+            if eq:
+                lines.append(f"🎁 获得装备：**{eq['name']}**（{eq['quality']}·{eq['slot']}）`{eq['equip_id']}`")
+            embed.add_field(name="获得奖励", value="\n".join(lines), inline=False)
         else:
             escaped, escape_pct = roll_escape(player)
             if escaped:
@@ -244,8 +277,12 @@ class TavernCog(commands.Cog, name="Tavern"):
                 _apply_quest_rewards(uid, bonus)
                 embed.add_field(name="意外收获", value="\n".join(_reward_lines(bonus)), inline=False)
 
-        _apply_quest_rewards(uid, q["rewards"])
-        embed.add_field(name="任务奖励", value="\n".join(_reward_lines(q["rewards"])), inline=False)
+        _apply_quest_rewards(uid, q["rewards"], player)
+        lines = _reward_lines(q["rewards"])
+        eq = q["rewards"].get("_generated_equipment")
+        if eq:
+            lines.append(f"🎁 获得装备：**{eq['name']}**（{eq['quality']}·{eq['slot']}）`{eq['equip_id']}`")
+        embed.add_field(name="任务奖励", value="\n".join(lines), inline=False)
         return embed
 
     @tasks.loop(minutes=1)
@@ -285,6 +322,10 @@ class TavernCog(commands.Cog, name="Tavern"):
         player = _get_player(uid)
         if not player or player["is_dead"]:
             return await ctx.send(f"{ctx.author.mention} 尚未踏入修仙之路或已坐化。")
+
+        from utils.world import get_region
+        if get_region(player.get("current_city", "")):
+            return await ctx.send(f"{ctx.author.mention} 此处是秘地荒野，没有茶馆。请先返回城市。")
 
         if player.get("active_quest"):
             q_data = json.loads(player["active_quest"])

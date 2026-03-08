@@ -82,8 +82,16 @@ class MainMenuView(discord.ui.View):
         if can_breakthrough:
             self.add_item(MenuButton("突破", discord.ButtonStyle.danger, "breakthrough"))
         self.add_item(MenuButton("探险", discord.ButtonStyle.secondary, "explore"))
-        self.add_item(MenuButton("茶馆", discord.ButtonStyle.secondary, "tavern"))
         if has_player:
+            from utils.world import get_region
+            region = get_region(player.get("current_city", "")) if player else None
+            if not region:
+                self.add_item(MenuButton("茶馆", discord.ButtonStyle.secondary, "tavern"))
+            if region:
+                emoji_map = {"采矿": "⛏️", "采药": "🌿", "伐木": "🪓", "钓鱼": "🎣"}
+                rtype = region.get("type", "")
+                if rtype in emoji_map:
+                    self.add_item(MenuButton(f"{emoji_map[rtype]} {rtype}", discord.ButtonStyle.success, f"gather:{rtype}"))
             self.add_item(MenuButton("背包", discord.ButtonStyle.secondary, "backpack"))
             self.add_item(MenuButton("功法", discord.ButtonStyle.secondary, "techniques"))
             self.add_item(MenuButton("装备", discord.ButtonStyle.secondary, "equipment"))
@@ -202,13 +210,15 @@ class MenuButton(discord.ui.Button):
                 else:
                     await interaction.followup.send("背包系统暂时不可用。", ephemeral=True)
             elif self.action == "techniques":
-                sect_cog = cog.bot.cogs.get("Sect")
-                if sect_cog:
-                    ctx = await cog.bot.get_context(interaction.message)
-                    ctx.author = interaction.user
-                    await sect_cog.my_techniques(ctx)
+                from utils.views.techniques import TechniquesView, _build_techniques_embed, _get_player as _tech_get_player
+                uid = str(interaction.user.id)
+                player = _tech_get_player(uid)
+                if not player:
+                    await interaction.followup.send("尚未踏入修仙之路。", ephemeral=True)
                 else:
-                    await interaction.followup.send("功法系统暂时不可用。", ephemeral=True)
+                    embed = _build_techniques_embed(player)
+                    view = TechniquesView(interaction.user, cog)
+                    await interaction.followup.send(embed=embed, view=view)
             elif self.action == "equipment":
                 equip_cog = cog.bot.cogs.get("Equipment")
                 if equip_cog:
@@ -217,6 +227,34 @@ class MenuButton(discord.ui.Button):
                     await equip_cog.equip_details(ctx)
                 else:
                     await interaction.followup.send("装备系统暂时不可用。", ephemeral=True)
+            elif self.action.startswith("gather:"):
+                gather_type = self.action[len("gather:"):]
+                from utils.views.gathering import GatherView, TYPE_EMOJI
+                from utils.db import get_conn
+                from utils.character import seconds_to_years
+                import time as _time
+                uid = str(interaction.user.id)
+                with get_conn() as conn:
+                    player = dict(conn.execute("SELECT * FROM players WHERE discord_id = ?", (uid,)).fetchone())
+                now = _time.time()
+                if player["cultivating_until"] and now < player["cultivating_until"]:
+                    remaining = seconds_to_years(player["cultivating_until"] - now)
+                    await interaction.followup.send(f"道友正在闭关，无法采集。还剩约 **{remaining:.1f} 年**。", ephemeral=True)
+                elif player["gathering_until"] and now < player["gathering_until"]:
+                    remaining = seconds_to_years(player["gathering_until"] - now)
+                    await interaction.followup.send(f"道友正在采集中，还剩约 **{remaining:.1f} 年**。", ephemeral=True)
+                else:
+                    region_name = player.get("current_city", "")
+                    emoji = TYPE_EMOJI.get(gather_type, "⛏️")
+                    embed = discord.Embed(
+                        title=f"✦ {emoji} {gather_type} · {region_name} ✦",
+                        description=f"当前寿元：**{player['lifespan']} 年**\n\n请选择采集时长：",
+                        color=discord.Color.green(),
+                    )
+                    await interaction.followup.send(
+                        embed=embed,
+                        view=GatherView(interaction.user, cog, player, gather_type, region_name),
+                    )
             elif self.action.startswith("join_sect:"):
                 sect_name = self.action[len("join_sect:"):]
                 sect_cog = cog.bot.cogs.get("Sect")

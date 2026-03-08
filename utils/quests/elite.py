@@ -7,7 +7,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期1层"},
         "enemy": {"name": "叛逃邪修", "power": 280},
         "rewards": {"spirit_stones": 4500, "reputation": 38, "cultivation": 280,
-                    "technique": "缩地术"},
+                    "technique": "缩地术",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [50, 50]}},
     },
     {
         "id": "e007",
@@ -17,7 +18,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期2层", "min_stat": {"soul": 6}},
         "location": "昆仑秘境",
         "rewards": {"spirit_stones": 3500, "reputation": 30, "soul": 1,
-                    "technique": "望气术"},
+                    "technique": "望气术",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [60, 40]}},
     },
     {
         "id": "e008",
@@ -27,7 +29,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期3层", "min_stat": {"bone": 6}},
         "location": "天雷谷",
         "rewards": {"spirit_stones": 5500, "reputation": 42, "bone": 1,
-                    "technique": "固元功"},
+                    "technique": "固元功",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [50, 50]}},
     },
     {
         "id": "e009",
@@ -37,7 +40,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期4层", "min_stat": {"physique": 8}},
         "enemy": {"name": "擂台霸主", "power": 450},
         "rewards": {"spirit_stones": 6500, "reputation": 48, "physique": 1,
-                    "technique": "破军刀法"},
+                    "technique": "破军刀法",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [70, 30]}},
     },
     {
         "id": "e010",
@@ -47,7 +51,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期6层"},
         "location": "虚空裂缝",
         "rewards": {"spirit_stones": 7500, "reputation": 52, "lifespan": 8,
-                    "technique": "千机变"},
+                    "technique": "千机变",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [65, 35]}},
     },
     {
         "id": "e011",
@@ -57,7 +62,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期2层", "min_stat": {"soul": 7}},
         "enemy": {"name": "血煞魔头", "power": 320},
         "rewards": {"spirit_stones": 5200, "reputation": 44, "soul": 1,
-                    "technique": "玄天心法"},
+                    "technique": "玄天心法",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [45, 55]}},
     },
     {
         "id": "e012",
@@ -67,7 +73,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期5层", "min_stat": {"fortune": 6}},
         "location": "万妖岭",
         "rewards": {"spirit_stones": 6800, "reputation": 50, "lifespan": 12,
-                    "technique": "吞星功"},
+                    "technique": "吞星功",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [60, 40]}},
     },
     {
         "id": "e013",
@@ -77,7 +84,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期7层", "min_stat": {"physique": 8}},
         "enemy": {"name": "妖兽巢主", "power": 600},
         "rewards": {"spirit_stones": 9000, "reputation": 60, "physique": 1,
-                    "technique": "罡气护体"},
+                    "technique": "罡气护体",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [50, 50]}},
     },
     {
         "id": "e014",
@@ -87,7 +95,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期8层", "min_stat": {"comprehension": 8}},
         "location": "古战场",
         "rewards": {"spirit_stones": 8500, "reputation": 58, "comprehension": 1,
-                    "technique": "穿云剑法"},
+                    "technique": "穿云剑法",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [55, 45]}},
     },
     {
         "id": "e015",
@@ -97,7 +106,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期9层", "min_stat": {"soul": 8}},
         "enemy": {"name": "幽冥守卫", "power": 700},
         "rewards": {"spirit_stones": 10000, "reputation": 65, "soul": 1,
-                    "technique": "万象归一"},
+                    "technique": "万象归一",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [40, 60]}},
     },
     {
         "id": "e001",
@@ -107,7 +117,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期1层"},
         "enemy": {"name": "血手魔", "power": 300},
         "rewards": {"spirit_stones": 5000, "reputation": 40, "cultivation": 300,
-                    "technique": "金钟罩"},
+                    "technique": "金钟罩",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [50, 50]}},
     },
     {
         "id": "e002",
@@ -117,7 +128,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期3层", "min_stat": {"comprehension": 7}},
         "location": "古战场",
         "rewards": {"spirit_stones": 4000, "reputation": 35, "comprehension": 1,
-                    "technique": "穿云剑法"},
+                    "technique": "穿云剑法",
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [55, 45]}},
     },
     {
         "id": "e003",
@@ -127,7 +139,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期5层", "min_stat": {"physique": 7}},
         "location": "寒玉窟",
         "rewards": {"spirit_stones": 6000, "reputation": 45, "physique": 1,
-                    "technique": "罡气护体"},
+                    "technique": "罡气护体",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [65, 35]}},
     },
     {
         "id": "e004",
@@ -137,7 +150,8 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期5层", "min_stat": {"soul": 7}},
         "enemy": {"name": "邪修首领", "power": 500},
         "rewards": {"spirit_stones": 7000, "reputation": 50, "soul": 1,
-                    "technique": "万象归一"},
+                    "technique": "万象归一",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [60, 40]}},
     },
     {
         "id": "e005",
@@ -147,6 +161,7 @@ ELITE_QUESTS = [
         "req": {"min_realm": "筑基期7层"},
         "location": "幽冥海",
         "rewards": {"spirit_stones": 8000, "reputation": 55, "lifespan": 10,
-                    "technique": "神行百变"},
+                    "technique": "神行百变",
+                    "equipment": {"quality_pool": ["稀有", "史诗"], "quality_weights": [55, 45]}},
     },
 ]

@@ -114,6 +114,10 @@ class CultivationCog(commands.Cog, name="Cultivation"):
         if is_cultivating:
             remaining = seconds_to_years(player["cultivating_until"] - now)
             status = f"闭关中（还剩 {remaining:.1f} 年）"
+        elif player["gathering_until"] and now < player["gathering_until"]:
+            remaining = seconds_to_years(player["gathering_until"] - now)
+            gtype = player.get("gathering_type", "采集")
+            status = f"{gtype}中（还剩 {remaining:.1f} 年）"
         else:
             status = "空闲"
         speed_label = {
@@ -160,6 +164,9 @@ class CultivationCog(commands.Cog, name="Cultivation"):
         if player["cultivating_until"] and now < player["cultivating_until"]:
             remaining = seconds_to_years(player["cultivating_until"] - now)
             return await interaction.followup.send(f"道友正在闭关，还剩约 **{remaining:.1f} 年**，可使用 `cat!停止` 提前结束。")
+        if player["gathering_until"] and now < player["gathering_until"]:
+            remaining = seconds_to_years(player["gathering_until"] - now)
+            return await interaction.followup.send(f"道友正在采集中，无法修炼。还剩约 **{remaining:.1f} 年**。")
 
         bonus = get_cultivation_bonus(uid, player["current_city"], player.get("cave"))
         embed = discord.Embed(
@@ -418,6 +425,10 @@ class CultivationCog(commands.Cog, name="Cultivation"):
         if is_cultivating:
             remaining = seconds_to_years(player["cultivating_until"] - now)
             status = f"闭关中（还剩 {remaining:.1f} 年）"
+        elif player["gathering_until"] and now < player["gathering_until"]:
+            remaining = seconds_to_years(player["gathering_until"] - now)
+            gtype = player.get("gathering_type", "采集")
+            status = f"{gtype}中（还剩 {remaining:.1f} 年）"
         else:
             status = "空闲"
 
@@ -475,6 +486,12 @@ class CultivationCog(commands.Cog, name="Cultivation"):
             return await ctx.send(
                 f"{ctx.author.mention} 道友正在闭关修炼，还剩约 **{remaining:.1f} 年**，"
                 "可使用 `cat!停止` 提前结束。"
+            )
+
+        if player["gathering_until"] and now < player["gathering_until"]:
+            remaining = seconds_to_years(player["gathering_until"] - now)
+            return await ctx.send(
+                f"{ctx.author.mention} 道友正在采集中，无法修炼。还剩约 **{remaining:.1f} 年**。"
             )
 
         if years < 1 or years > 100:
@@ -823,18 +840,36 @@ class CultivationCog(commands.Cog, name="Cultivation"):
             return await ctx.send(
                 f"{ctx.author.mention} 道友正在闭关，无法移动。还剩约 **{remaining:.1f} 年**，可使用 `cat!停止` 提前结束。"
             )
+        if player["gathering_until"] and now < player["gathering_until"]:
+            remaining = seconds_to_years(player["gathering_until"] - now)
+            return await ctx.send(
+                f"{ctx.author.mention} 道友正在采集中，无法移动。还剩约 **{remaining:.1f} 年**。"
+            )
 
-        from utils.world import get_city
+        from utils.world import get_city, get_region
+        from utils.realms import get_realm_index as _get_realm_idx
         target = get_city(city_name)
+        is_secret = False
         if not target:
-            matches = [c for c in CITIES if city_name in c["name"]]
-            if len(matches) == 1:
-                target = matches[0]
-            elif len(matches) > 1:
-                names = "、".join(c["name"] for c in matches)
-                return await ctx.send(f"{ctx.author.mention} 找到多个匹配城市：{names}，请输入完整城市名。")
+            secret = get_region(city_name)
+            if secret:
+                player_idx = _get_realm_idx(player["realm"])
+                req_idx = _get_realm_idx(secret["min_realm"])
+                if player_idx < req_idx:
+                    return await ctx.send(
+                        f"{ctx.author.mention} 境界不足，前往 **{secret['name']}** 需达到 **{secret['min_realm']}**。"
+                    )
+                target = {"name": secret["name"], "desc": secret["desc"], "region": f"秘地 · {secret['type']}"}
+                is_secret = True
             else:
-                return await ctx.send(f"{ctx.author.mention} 未找到城市「{city_name}」，请检查名称是否正确。")
+                matches = [c for c in CITIES if city_name in c["name"]]
+                if len(matches) == 1:
+                    target = matches[0]
+                elif len(matches) > 1:
+                    names = "、".join(c["name"] for c in matches)
+                    return await ctx.send(f"{ctx.author.mention} 找到多个匹配城市：{names}，请输入完整城市名。")
+                else:
+                    return await ctx.send(f"{ctx.author.mention} 未找到城市「{city_name}」，请检查名称是否正确。")
 
         if target["name"] == player["current_city"]:
             return await ctx.send(f"{ctx.author.mention} 道友已在 **{target['name']}**，无需移动。")
@@ -926,8 +961,14 @@ class CultivationCog(commands.Cog, name="Cultivation"):
             "`cat!装备 [装备ID]` — 装备指定物品（ID见背包）\n"
             "`cat!卸下 [装备ID]` — 卸下装备\n"
             "`cat!丢弃装备 [装备ID]` — 永久丢弃装备\n"
+            "`cat!出售 [物品名] [数量]` — 出售材料换取灵石\n"
             "· 装备分武器/防具/饰品三槽，有境界要求\n"
             "· 品质：普通⬜ 精良🟩 稀有🟦 史诗🟪 传说🟨"
+        ), inline=False)
+        embed.add_field(name="采集", value=(
+            "· 前往秘地后，主菜单出现采集按钮（⛏️采矿/🌿采药/🪓伐木/🎣钓鱼）\n"
+            "· 采集消耗寿元，时间越长、境界越高，产出越好\n"
+            "· 采集完成后 DM 通知，材料可出售或留作锻造"
         ), inline=False)
         embed.add_field(name="居所", value=(
             "`cat!买房` — 在当前城市置业（声望≥300）\n"
@@ -1107,11 +1148,88 @@ class CultivationCog(commands.Cog, name="Cultivation"):
     async def _before_notifier(self):
         await self.bot.wait_until_ready()
 
+    @tasks.loop(minutes=1)
+    async def _gathering_notifier(self):
+        now = time.time()
+        with get_conn() as conn:
+            rows = conn.execute(
+                "SELECT discord_id, name, gathering_type, gathering_until, current_city, realm FROM players "
+                "WHERE gathering_until IS NOT NULL AND gathering_until <= ? AND is_dead = 0",
+                (now,)
+            ).fetchall()
+        for row in rows:
+            uid = row["discord_id"]
+            notify_key = f"gather_{uid}"
+            if notify_key in self._notified:
+                continue
+            self._notified.add(notify_key)
+
+            from utils.views.gathering import roll_gathering_rewards
+            from utils.realms import get_realm_index as _gri
+            from utils.db import add_item
+
+            gather_type = row["gathering_type"] or "采矿"
+            region_name = row["current_city"]
+            realm_idx = _gri(row["realm"])
+            started_at = row["gathering_until"]
+            from utils.character import seconds_to_years
+            duration_secs = max(0, started_at - (now - (started_at - now) if started_at > now else 0))
+            years_spent = max(0.25, seconds_to_years(max(1, now - (started_at - 7200))))
+
+            with get_conn() as conn:
+                p = conn.execute("SELECT gathering_until, last_active FROM players WHERE discord_id = ?", (uid,)).fetchone()
+                if p and p["gathering_until"]:
+                    actual_duration = p["gathering_until"] - p["last_active"]
+                    years_spent = max(0.25, seconds_to_years(actual_duration))
+
+            rewards = roll_gathering_rewards(years_spent, realm_idx, region_name, gather_type)
+
+            with get_conn() as conn:
+                conn.execute(
+                    "UPDATE players SET gathering_until = NULL, gathering_type = NULL WHERE discord_id = ?",
+                    (uid,)
+                )
+                conn.commit()
+
+            for item_name, qty in rewards:
+                add_item(uid, item_name, qty)
+
+            try:
+                from utils.views.gathering import TYPE_EMOJI
+                emoji = TYPE_EMOJI.get(gather_type, "⛏️")
+                embed = discord.Embed(
+                    title=f"✦ {emoji} {gather_type}完成 ✦",
+                    description=f"**{row['name']}** 在 **{region_name}** 的{gather_type}已完成！",
+                    color=discord.Color.green(),
+                )
+                if rewards:
+                    lines = [f"· **{name}** ×{qty}" for name, qty in rewards]
+                    embed.add_field(name="获得材料", value="\n".join(lines), inline=False)
+                else:
+                    embed.add_field(name="获得材料", value="一无所获…", inline=False)
+                total_value = 0
+                from utils.items import ITEMS
+                for name, qty in rewards:
+                    info = ITEMS.get(name, {})
+                    total_value += info.get("sell_price", 0) * qty
+                if total_value > 0:
+                    embed.set_footer(text=f"材料总价值约 {total_value} 灵石（可使用 cat!出售 [材料名] 出售）")
+                user = await self.bot.fetch_user(int(uid))
+                await user.send(embed=embed)
+            except Exception:
+                pass
+
+    @_gathering_notifier.before_loop
+    async def _before_gathering_notifier(self):
+        await self.bot.wait_until_ready()
+
     async def cog_load(self):
         self._cultivation_notifier.start()
+        self._gathering_notifier.start()
 
     async def cog_unload(self):
         self._cultivation_notifier.cancel()
+        self._gathering_notifier.cancel()
 
 
 async def setup(bot):

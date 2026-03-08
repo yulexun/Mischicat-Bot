@@ -6,7 +6,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期1层"},
         "enemy": {"name": "低阶恶灵", "power": 25},
-        "rewards": {"spirit_stones": 700, "reputation": 8, "cultivation": 40},
+        "rewards": {"spirit_stones": 700, "reputation": 8, "cultivation": 40,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [70, 30], "chance": 0.25}},
     },
     {
         "id": "c008",
@@ -24,7 +25,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期2层"},
         "enemy": {"name": "盗墓贼头目", "power": 45},
-        "rewards": {"spirit_stones": 900, "reputation": 12, "cultivation": 60},
+        "rewards": {"spirit_stones": 900, "reputation": 12, "cultivation": 60,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [60, 40], "chance": 0.3}},
     },
     {
         "id": "c010",
@@ -42,7 +44,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期1层"},
         "enemy": {"name": "狼王", "power": 35},
-        "rewards": {"spirit_stones": 750, "reputation": 9, "cultivation": 45},
+        "rewards": {"spirit_stones": 750, "reputation": 9, "cultivation": 45,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [65, 35], "chance": 0.25}},
     },
     {
         "id": "c012",
@@ -60,7 +63,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期4层"},
         "enemy": {"name": "截道劫匪", "power": 75},
-        "rewards": {"spirit_stones": 1600, "reputation": 18, "cultivation": 90},
+        "rewards": {"spirit_stones": 1600, "reputation": 18, "cultivation": 90,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [50, 50], "chance": 0.35}},
     },
     {
         "id": "c014",
@@ -78,7 +82,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期5层"},
         "enemy": {"name": "邪修散修", "power": 100},
-        "rewards": {"spirit_stones": 2200, "reputation": 22, "cultivation": 110},
+        "rewards": {"spirit_stones": 2200, "reputation": 22, "cultivation": 110,
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [70, 30], "chance": 0.4}},
     },
     {
         "id": "c016",
@@ -96,7 +101,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期1层"},
         "enemy": {"name": "采花贼", "power": 30},
-        "rewards": {"spirit_stones": 800, "reputation": 10, "cultivation": 50},
+        "rewards": {"spirit_stones": 800, "reputation": 10, "cultivation": 50,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [70, 30], "chance": 0.2}},
     },
     {
         "id": "c002",
@@ -105,7 +111,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期3层"},
         "enemy": {"name": "山贼头目", "power": 60},
-        "rewards": {"spirit_stones": 1500, "reputation": 15, "cultivation": 80},
+        "rewards": {"spirit_stones": 1500, "reputation": 15, "cultivation": 80,
+                    "equipment": {"quality_pool": ["普通", "精良"], "quality_weights": [50, 50], "chance": 0.3}},
     },
     {
         "id": "c003",
@@ -132,7 +139,8 @@ COMMON_QUESTS = [
         "type": "combat",
         "req": {"min_realm": "炼气期5层"},
         "enemy": {"name": "劫匪", "power": 90},
-        "rewards": {"spirit_stones": 2000, "reputation": 20, "cultivation": 100},
+        "rewards": {"spirit_stones": 2000, "reputation": 20, "cultivation": 100,
+                    "equipment": {"quality_pool": ["精良", "稀有"], "quality_weights": [65, 35], "chance": 0.35}},
     },
     {
         "id": "c006",
