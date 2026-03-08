@@ -111,9 +111,19 @@ function renderTable() {
 
     pageData.forEach((player) => {
         const row = document.createElement("tr");
-
         const statusClass = player.is_dead === 0 ? "alive" : "dead";
         const statusText = player.is_dead === 0 ? "健在" : "已坐化";
+
+        // Discovered sects
+        let sects = Array.isArray(player.discovered_sects) && player.discovered_sects.length > 0
+            ? player.discovered_sects.map(s => `<span class='badge realm'>${s}</span>`).join(' ')
+            : '-';
+
+        // Equipped techniques
+        let equipped = Array.isArray(player.techniques)
+            ? player.techniques.filter(t => t.equipped).map(t =>
+                `<span class='badge'>${t.name} <small>(${t.grade}, ${t.stage})</small></span>`
+            ).join(' ') : '-';
 
         row.innerHTML = `
             <td><strong>${player.name}</strong></td>
@@ -130,8 +140,11 @@ function renderTable() {
             <td>${player.current_city}</td>
             <td><span class="badge ${statusClass}">${statusText}</span></td>
             <td>${player.last_active_formatted}</td>
+            <td>${sects}</td>
+            <td>${equipped}</td>
+            <td>${player.explore_count || 0}</td>
+            <td>${player.current_city || '-'}</td>
         `;
-
         tbody.appendChild(row);
     });
 
