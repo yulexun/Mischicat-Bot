@@ -273,7 +273,7 @@ function setupNavigation() {
             showSection(targetId);
 
             if (targetId === "quest") {
-                loadQuests();
+                loadPublicEvents();
             }
 
             window.history.replaceState(null, "", `#${targetId}`);
@@ -308,75 +308,86 @@ document.addEventListener("DOMContentLoaded", () => {
     setupNavigation();
     bindEvents();
     loadData();
-    loadQuests();
+    loadPublicEvents();
     setInterval(() => {
         loadData();
-        loadQuests();
+        loadPublicEvents();
     }, 30000);
 });
 
-async function loadQuests() {
+async function loadPublicEvents() {
     try {
-        setHidden("questPanel", false);
-        setHidden("questLoading", false);
-        setHidden("questError", true);
-        document.getElementById("questList").innerHTML = "";
-        setHidden("noQuests", true);
+        setHidden("publicEventsPanel", false);
+        setHidden("publicEventsLoading", false);
+        setHidden("publicEventsError", true);
+        document.getElementById("publicEventsList").innerHTML = "";
+        setHidden("noPublicEvents", true);
 
-        const response = await fetch("/api/quests");
+        const response = await fetch("/api/public_events");
         const data = await response.json();
 
         if (!data.success) {
-            throw new Error(data.error || "加载任务失败");
+            throw new Error(data.error || "加载事件失败");
         }
 
-        setHidden("questLoading", true);
-
-        document.getElementById("questCount").textContent = data.total;
+        setHidden("publicEventsLoading", true);
+        document.getElementById("publicEventsCount").textContent = data.total;
 
         if (data.total === 0) {
-            setHidden("noQuests", false);
+            setHidden("noPublicEvents", false);
             return;
         }
 
-        renderQuests(data.quests);
+        renderPublicEvents(data.events);
     } catch (error) {
-        setHidden("questLoading", true);
-        setHidden("questError", false);
-        document.getElementById("questError").textContent = "加载任务失败: " + error.message;
+        setHidden("publicEventsLoading", true);
+        setHidden("publicEventsError", false);
+        document.getElementById("publicEventsError").textContent = "加载事件失败: " + error.message;
     }
 }
 
-function renderQuests(quests) {
-    const questList = document.getElementById("questList");
-    questList.innerHTML = "";
+function renderPublicEvents(events) {
+    const eventsList = document.getElementById("publicEventsList");
+    eventsList.innerHTML = "";
 
-    quests.forEach((quest) => {
-        const questItem = document.createElement("div");
-        questItem.className = "quest-item" + (quest.is_complete ? " complete" : "");
+    events.forEach((event) => {
+        const eventItem = document.createElement("div");
+        eventItem.className = "event-item";
 
-        const typeLabel = quest.quest_type === "combat" ? "战斗" : quest.quest_type === "gather" ? "采集" : quest.quest_type;
-        const typeClass = quest.quest_type === "combat" ? "combat" : "gather";
-        const statusClass = quest.is_complete ? "complete" : "progress";
+        // Participants rendering
+        let participantsHtml = "<div class='event-participants'><strong>参与者:</strong>";
+        if (event.participants && event.participants.length > 0) {
+            participantsHtml += "<ul>";
+            event.participants.forEach(p => {
+                participantsHtml += `<li>
+                    <span class='participant-id'>🆔 ${p.discord_id}</span>
+                    <span class='participant-time'>加入: ${new Date(p.joined_at * 1000).toLocaleString("zh-CN")}</span>
+                    <span class='participant-contribution'>贡献: ${p.contribution}</span>
+                </li>`;
+            });
+            participantsHtml += "</ul>";
+        } else {
+            participantsHtml += " 无";
+        }
+        participantsHtml += "</div>";
 
-        questItem.innerHTML = `
-            <div class="quest-item-header">
+        eventItem.innerHTML = `
+            <div class="event-item-header">
                 <div>
-                    <div class="quest-title">
-                        ${quest.quest_title}
-                        <span class="quest-type-badge ${typeClass}">${typeLabel}</span>
+                    <div class="event-title">
+                        ${event.title}
+                        <span class="event-type-badge">${event.event_type}</span>
                     </div>
-                    <div class="quest-player">👤 ${quest.player_name}</div>
                 </div>
-                <span class="quest-status ${statusClass}">${quest.status}</span>
+                <span class="event-status">${event.status}</span>
             </div>
-            <div class="quest-desc">${quest.quest_desc}</div>
-            <div class="quest-time">
-                <span>⏰ ${quest.quest_due_formatted}</span>
-                <span>${quest.remaining_formatted}</span>
+            <div class="event-time">
+                <span>开始: ${new Date(event.started_at * 1000).toLocaleString("zh-CN")}</span>
+                <span>结束: ${new Date(event.ends_at * 1000).toLocaleString("zh-CN")}</span>
             </div>
+            <div class="event-data">${event.data}</div>
+            ${participantsHtml}
         `;
-
-        questList.appendChild(questItem);
+        eventsList.appendChild(eventItem);
     });
 }

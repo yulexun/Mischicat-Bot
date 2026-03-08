@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import Flask, jsonify, render_template
 from utils.db import get_conn
 from utils.realms import get_realm_index
+from flask import request
 
 app = Flask(__name__)
 
@@ -218,6 +219,33 @@ def api_stats():
                 'realms': [dict(r) for r in realms],
                 'top_cultivators': [dict(c) for c in top_cultivators]
             }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/public_events')
+def api_public_events():
+    """API endpoint to get all public events with participants"""
+    try:
+        with get_conn() as conn:
+            rows = conn.execute("SELECT * FROM public_events ORDER BY started_at DESC").fetchall()
+            events = []
+            for event_row in rows:
+                event = dict(event_row)
+                participants_rows = conn.execute(
+                    "SELECT * FROM public_event_participants WHERE event_id = ? ORDER BY joined_at ASC",
+                    (event['event_id'],)
+                ).fetchall()
+                event['participants'] = [dict(p) for p in participants_rows]
+                events.append(event)
+        return jsonify({
+            'success': True,
+            'total': len(events),
+            'events': events
         })
     except Exception as e:
         return jsonify({

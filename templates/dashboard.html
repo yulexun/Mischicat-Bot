@@ -111,16 +111,16 @@
         </section>
 
         <section class="dashboard-section" id="quest">
-            <div class="quest-panel is-hidden" id="questPanel">
-                <div class="quest-header">
-                    <h3>🏮 茶馆任务</h3>
-                    <span id="questCount" class="quest-badge">0</span>
+                <div class="public-events-panel" id="publicEventsPanel">
+                    <div class="public-events-header">
+                        <h3>📢 公共事件</h3>
+                        <span id="publicEventsCount" class="event-badge">0</span>
+                    </div>
+                    <div id="publicEventsLoading" class="loading">加载中...</div>
+                    <div id="publicEventsError" class="error is-hidden"></div>
+                    <div id="noPublicEvents" class="no-data is-hidden">暂无公共事件</div>
+                    <div id="publicEventsList" class="events-list"></div>
                 </div>
-                <div id="questLoading" class="loading is-hidden">加载中...</div>
-                <div id="questError" class="error is-hidden"></div>
-                <div id="noQuests" class="no-data is-hidden">暂无进行中的任务</div>
-                <div id="questList" class="quest-list"></div>
-            </div>
         </section>
     </div>
 
