@@ -3,3 +3,4 @@ yt-dlp
 PyNaCl
 python-dotenv
 Flask
+bgutil-ytdlp-pot-provider
