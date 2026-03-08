@@ -123,8 +123,8 @@ function renderTable() {
 
         let equipped = Array.isArray(player.techniques)
             ? `<div class='player-techniques'>` + player.techniques.filter(t => t.equipped).map(t =>
-                `<span class='badge'>${t.name} <small>(${t.grade}, ${t.stage})</small></span>`
-            ).join(' ') + `</div>` : '-';
+                `<div class='technique-item'><span class='badge'>${t.name} <small>(${t.grade}, ${t.stage})</small></span></div>`
+            ).join('') + `</div>` : '-';
 
         row.innerHTML = `
             <td data-label="姓名"><strong>${player.name}</strong></td>

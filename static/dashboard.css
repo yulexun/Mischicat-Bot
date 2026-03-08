@@ -294,6 +294,16 @@ th, td {
     font-size: 0.85em;
 }
 
+.player-techniques {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3em;
+}
+
+.technique-item {
+    margin-bottom: 0.2em;
+}
+
 .player-techniques .badge {
     margin-bottom: 2px;
     font-size: 0.8em;
