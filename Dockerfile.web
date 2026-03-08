@@ -1,0 +1,29 @@
+# Use official Python image
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install only web dashboard dependencies
+RUN pip install --no-cache-dir Flask==3.0.0 python-dotenv
+
+# Create utils directory structure
+RUN mkdir -p utils
+
+# Copy only necessary files for web dashboard
+COPY web_server.py .
+COPY templates/ ./templates/
+COPY utils/__init__.py ./utils/
+COPY utils/db.py ./utils/
+COPY utils/realms.py ./utils/
+
+# Expose port
+EXPOSE 5000
+
+# Set environment variables
+ENV FLASK_APP=web_server.py
+ENV WEB_PORT=5000
+ENV PYTHONUNBUFFERED=1
+
+# Command to run the web server
+CMD ["python", "web_server.py"]

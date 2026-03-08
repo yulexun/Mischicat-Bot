@@ -1,10 +1,18 @@
-name: Build and Push Docker Image
+name: Build and Push Docker Images
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  BOT_IMAGE_NAME: ${{ github.repository }}/mischicat-bot
+  WEB_IMAGE_NAME: ${{ github.repository }}/mischicat-web-dashboard
 
 jobs:
   build-and-push:
@@ -12,6 +20,16 @@ jobs:
     permissions:
       contents: read
       packages: write
+
+    strategy:
+      matrix:
+        include:
+          - name: Bot
+            dockerfile: Dockerfile
+            image_env: BOT_IMAGE_NAME
+          - name: Web Dashboard
+            dockerfile: Dockerfile.web
+            image_env: WEB_IMAGE_NAME
 
     steps:
       - name: Checkout code
@@ -26,29 +44,35 @@ jobs:
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          tags: ghcr.io/${{ github.repository }}/mischicat-bot:latest
-          file: Dockerfile
-      - name: Get timestamp tag
-        id: get_tag
-        run: |
-          echo "::set-output name=tag::alpha$(date +'%Y%m%d%H%M%S')"
-      - name: Build and push Docker image with timestamp tag
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
+          images: ${{ env.REGISTRY }}/${{ matrix.image_env == 'BOT_IMAGE_NAME' && env.BOT_IMAGE_NAME || env.WEB_IMAGE_NAME }}
           tags: |
-            ghcr.io/${{ github.repository }}/mischicat-bot:latest
-            ghcr.io/${{ github.repository }}/mischicat-bot:${{ steps.get_tag.outputs.tag }}
-          file: Dockerfile
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix={{branch}}-,format=short
+            type=raw,value=alpha{{date 'YYYYMMDDHHmmss'}}
+
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.name }}
+
+      - name: Image digest
+        run: echo "Built ${{ matrix.name }} - ${{ steps.meta.outputs.tags }}"

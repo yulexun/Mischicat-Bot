@@ -1,0 +1,61 @@
+version: '3.8'
+
+# Production configuration using pre-built images from GitHub Container Registry
+# Replace {YOUR_GITHUB_USERNAME} with your actual GitHub username or organization
+
+services:
+  mischicat-bot:
+    # Pull pre-built image from GitHub Container Registry
+    image: ghcr.io/yulexun/mischicat-bot/mischicat-bot:latest
+    container_name: mischicat-bot
+    env_file:
+      - .env
+    volumes:
+      - sqlite-data:/app/sqlite-data
+    restart: unless-stopped
+    # Uncomment for resource limits in production
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          memory: 256M
+
+  web-dashboard:
+    # Pull pre-built image from GitHub Container Registry
+    image: ghcr.io/yulexun/mischicat-bot/mischicat-web-dashboard:latest
+    container_name: mischicat-web-dashboard
+    env_file:
+      - .env
+    volumes:
+      - sqlite-data:/app/sqlite-data
+    ports:
+      - "${WEB_PORT:-5000}:5000"
+    restart: unless-stopped
+    depends_on:
+      - mischicat-bot
+    # Uncomment for health checks in production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Uncomment for resource limits in production
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          memory: 128M
+
+volumes:
+  sqlite-data:
+    driver: local
+
+# Uncomment to add custom network
+networks:
+  mcat-network:
+    driver: bridge
