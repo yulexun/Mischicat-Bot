@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setInterval(() => {
         loadData();
         loadPublicEvents();
-    }, 30000);
+    }, 300000); // 5 minutes
 });
 
 async function loadPublicEvents() {
