@@ -1,3 +1,9 @@
+.install-pwa-btn-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 18px;
+    margin-bottom: 8px;
+}
 :root {
     --bg-dark: #111111;
     --bg-mid: #2a2a2a;
@@ -8,6 +14,7 @@
     --text-muted: #666666;
     --accent: #222222;
     --accent-hover: #000000;
+    --nav-height: 68px;
 }
 
 * {
@@ -16,12 +23,90 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-mid) 100%);
     min-height: 100vh;
-    padding: 20px;
+    padding: calc(var(--nav-height) + 20px) 20px 20px;
     color: var(--text-main);
+}
+
+.top-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: rgba(17, 17, 17, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+}
+
+.top-nav-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    height: var(--nav-height);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 0 20px;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: #f0f0f0;
+    text-transform: uppercase;
+    font-size: 0.86rem;
+    letter-spacing: 0.12em;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.nav-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.nav-link.active {
+    background: #ffffff;
+    color: #111111;
+    border-color: #ffffff;
+}
+
+.dashboard-section {
+    display: none;
+    scroll-margin-top: calc(var(--nav-height) + 18px);
+    animation: sectionFadeIn 0.25s ease;
+}
+
+.dashboard-section.is-active {
+    display: block;
+}
+
+#home {
+    margin-bottom: 10px;
+}
+
+#statistic,
+#player {
+    margin-bottom: 24px;
+}
+
+@keyframes sectionFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .container {
@@ -45,6 +130,23 @@ header h1 {
 header p {
     font-size: 1.1em;
     opacity: 0.9;
+}
+
+.install-pwa-btn {
+    padding: 12px 28px;
+    font-size: 1.1em;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    margin-top: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transition: background 0.2s, color 0.2s;
+}
+.install-pwa-btn:hover {
+    background: var(--accent-hover);
+    color: #fff;
 }
 
 .last-update {
@@ -198,14 +300,36 @@ th, td {
 }
 
 @media (max-width: 768px) {
-    table {
-        min-width: 900px;
-        font-size: 0.85em;
+    :root {
+        --nav-height: 60px;
     }
+
+    body {
+        padding: calc(var(--nav-height) + 14px) 12px 14px;
+    }
+
+    .top-nav-inner {
+        justify-content: flex-start;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 0 12px;
+    }
+
+    .top-nav-inner::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-link {
+        flex: 0 0 auto;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        padding: 9px 12px;
+    }
+
     .player-sects, .player-techniques {
-        max-width: 120px;
+        max-width: none;
+        overflow: visible;
     }
-}
 }
 
 thead {
@@ -461,11 +585,69 @@ tbody tr:hover {
 
 @media (max-width: 768px) {
     .table-container {
-        overflow-x: auto;
+        padding: 10px;
+        overflow: visible;
     }
 
-    table {
-        min-width: 800px;
+    #playersTable,
+    #playersTable tbody,
+    #playersTable tr,
+    #playersTable td {
+        display: block;
+        width: 100%;
+    }
+
+    #playersTable {
+        min-width: 0;
+        font-size: 0.9em;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    #playersTable thead {
+        display: none;
+    }
+
+    #playersTable tbody tr {
+        border: 1px solid #e4e4e4;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 12px;
+        padding: 6px 0;
+        background: #fff;
+    }
+
+    #playersTable tbody tr:hover {
+        background: #fff;
+    }
+
+    #playersTable td {
+        display: grid;
+        grid-template-columns: 110px 1fr;
+        align-items: start;
+        gap: 10px;
+        padding: 8px 12px;
+        border-bottom: 1px dashed #ececec;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    #playersTable td:last-child {
+        border-bottom: none;
+    }
+
+    #playersTable td::before {
+        content: attr(data-label);
+        font-size: 0.8em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #6a6a6a;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    #playersTable .badge {
+        margin-bottom: 3px;
     }
 
     header h1 {

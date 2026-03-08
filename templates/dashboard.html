@@ -5,92 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>修仙世界 - 玩家统计仪表板</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    <meta name="theme-color" content="#222222">
 </head>
 <body>
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('{{ url_for('static', filename='service-worker.js') }}');
+                });
+            }
+        </script>
+        <nav class="top-nav" aria-label="Dashboard navigation">
+        <div class="top-nav-inner">
+            <a class="nav-link active" href="#home" data-target="home">Home</a>
+            <a class="nav-link" href="#statistic" data-target="statistic">Statistic</a>
+            <a class="nav-link" href="#player" data-target="player">Player</a>
+            <a class="nav-link" href="#quest" data-target="quest">Quest</a>
+        </div>
+    </nav>
+
     <div class="container">
-        <header>
-            <h1>✨ 修仙世界 ✨</h1>
-            <p>玩家统计仪表板</p>
-            <p id="lastUpdate" class="last-update"></p>
-        </header>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>总玩家数</h3>
-                <div class="value" id="totalPlayers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>健在玩家</h3>
-                <div class="value" id="alivePlayers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>已坐化</h3>
-                <div class="value" id="deadPlayers">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>灵石总量</h3>
-                <div class="value" id="totalStones">-</div>
-            </div>
+        <section class="dashboard-section" id="home">
+            <header>
+                <h1>✨ 修仙世界 ✨</h1>
+                <p>玩家统计仪表板</p>
+                <p id="lastUpdate" class="last-update"></p>
+            </header>
+        <div class="install-pwa-btn-container">
+            <button id="installPwaBtn" class="install-pwa-btn">📲 安装应用</button>
         </div>
+        </section>
 
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 搜索玩家名称、境界、宗门...">
+        <section class="dashboard-section" id="statistic">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>总玩家数</h3>
+                    <div class="value" id="totalPlayers">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>健在玩家</h3>
+                    <div class="value" id="alivePlayers">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>已坐化</h3>
+                    <div class="value" id="deadPlayers">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>灵石总量</h3>
+                    <div class="value" id="totalStones">-</div>
+                </div>
             </div>
-            <div class="filter-group">
-                <button class="filter-btn active" data-filter="all">全部</button>
-                <button class="filter-btn" data-filter="alive">健在</button>
-                <button class="filter-btn" data-filter="dead">已坐化</button>
+        </section>
+
+        <section class="dashboard-section" id="player">
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="🔍 搜索玩家名称、境界、宗门...">
+                </div>
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all">全部</button>
+                    <button class="filter-btn" data-filter="alive">健在</button>
+                    <button class="filter-btn" data-filter="dead">已坐化</button>
+                </div>
+                <button class="refresh-btn" id="refreshBtn">🔄 刷新</button>
             </div>
-            <button class="refresh-btn" id="refreshBtn">🔄 刷新</button>
-        </div>
 
-        <!-- Quest Panel -->
-        <div class="quest-panel is-hidden" id="questPanel">
-            <div class="quest-header">
-                <h3>🏮 茶馆任务</h3>
-                <span id="questCount" class="quest-badge">0</span>
+            <div class="table-container">
+                <div id="loading" class="loading">加载中...</div>
+                <div id="error" class="error is-hidden"></div>
+                <div id="noData" class="no-data is-hidden">暂无数据</div>
+
+                <table id="playersTable" class="is-hidden">
+                    <thead>
+                        <tr>
+                            <th data-sort="name">姓名 <span class="sort-icon">▼</span></th>
+                            <th data-sort="gender">性别</th>
+                            <th data-sort="realm">境界 <span class="sort-icon">▼</span></th>
+                            <th data-sort="cultivation">修为 <span class="sort-icon">▼</span></th>
+                            <th data-sort="spirit_stones">灵石 <span class="sort-icon">▼</span></th>
+                            <th data-sort="lifespan">寿元 <span class="sort-icon">▼</span></th>
+                            <th>灵根</th>
+                            <th>宗门</th>
+                            <th>修炼状态</th>
+                            <th data-sort="cultivating_years">闭关设定 <span class="sort-icon">▼</span></th>
+                            <th data-sort="is_cultivating">闭关剩余 <span class="sort-icon">▼</span></th>
+                            <th>所在城市</th>
+                            <th>状态</th>
+                            <th data-sort="last_active">最后活跃 <span class="sort-icon">▼</span></th>
+                            <th>发现宗门</th>
+                            <th>装备功法</th>
+                            <th>探险次数</th>
+                            <th>最近探险城市</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersBody">
+                    </tbody>
+                </table>
+
+                <div class="pagination" id="pagination"></div>
             </div>
-            <div id="questLoading" class="loading is-hidden">加载中...</div>
-            <div id="questError" class="error is-hidden"></div>
-            <div id="noQuests" class="no-data is-hidden">暂无进行中的任务</div>
-            <div id="questList" class="quest-list"></div>
-        </div>
+        </section>
 
-        <div class="table-container">
-            <div id="loading" class="loading">加载中...</div>
-            <div id="error" class="error is-hidden"></div>
-            <div id="noData" class="no-data is-hidden">暂无数据</div>
-            
-            <table id="playersTable" class="is-hidden">
-                <thead>
-                    <tr>
-                        <th data-sort="name">姓名 <span class="sort-icon">▼</span></th>
-                        <th data-sort="gender">性别</th>
-                        <th data-sort="realm">境界 <span class="sort-icon">▼</span></th>
-                        <th data-sort="cultivation">修为 <span class="sort-icon">▼</span></th>
-                        <th data-sort="spirit_stones">灵石 <span class="sort-icon">▼</span></th>
-                        <th data-sort="lifespan">寿元 <span class="sort-icon">▼</span></th>
-                        <th>灵根</th>
-                        <th>宗门</th>
-                        <th>修炼状态</th>
-                        <th data-sort="cultivating_years">闭关设定 <span class="sort-icon">▼</span></th>
-                        <th data-sort="is_cultivating">闭关剩余 <span class="sort-icon">▼</span></th>
-                        <th>所在城市</th>
-                        <th>状态</th>
-                        <th data-sort="last_active">最后活跃 <span class="sort-icon">▼</span></th>
-                        <th>发现宗门</th>
-                        <th>装备功法</th>
-                        <th>探险次数</th>
-                        <th>最近探险城市</th>
-                    </tr>
-                </thead>
-                <tbody id="playersBody">
-                </tbody>
-            </table>
-
-            <div class="pagination" id="pagination"></div>
-        </div>
+        <section class="dashboard-section" id="quest">
+            <div class="quest-panel is-hidden" id="questPanel">
+                <div class="quest-header">
+                    <h3>🏮 茶馆任务</h3>
+                    <span id="questCount" class="quest-badge">0</span>
+                </div>
+                <div id="questLoading" class="loading is-hidden">加载中...</div>
+                <div id="questError" class="error is-hidden"></div>
+                <div id="noQuests" class="no-data is-hidden">暂无进行中的任务</div>
+                <div id="questList" class="quest-list"></div>
+            </div>
+        </section>
     </div>
 
     <script src="{{ url_for('static', filename='dashboard.js') }}" defer></script>

@@ -4,6 +4,7 @@ let currentPage = 1;
 const itemsPerPage = 20;
 let currentFilter = "all";
 let currentSort = { column: "cultivation", ascending: false };
+const sectionIds = ["home", "statistic", "player", "quest"];
 
 function setHidden(id, hidden) {
     const el = document.getElementById(id);
@@ -126,24 +127,24 @@ function renderTable() {
             ).join(' ') + `</div>` : '-';
 
         row.innerHTML = `
-            <td><strong>${player.name}</strong></td>
-            <td>${player.gender}修</td>
-            <td><span class="badge realm">${player.realm}</span></td>
-            <td>${player.cultivation.toLocaleString()}</td>
-            <td>${player.spirit_stones.toLocaleString()}</td>
-            <td>${player.lifespan} / ${player.lifespan_max}</td>
-            <td>${player.spirit_root}</td>
-            <td>${player.sect || "-"}</td>
-            <td>${player.cultivation_status || "-"}</td>
-            <td>${player.cultivating_years_display || "-"}</td>
-            <td>${player.retreat_remaining || "-"}</td>
-            <td>${player.current_city}</td>
-            <td><span class="badge ${statusClass}">${statusText}</span></td>
-            <td>${player.last_active_formatted}</td>
-            <td>${sects}</td>
-            <td>${equipped}</td>
-            <td>${player.explore_count || 0}</td>
-            <td>${player.current_city || '-'}</td>
+            <td data-label="姓名"><strong>${player.name}</strong></td>
+            <td data-label="性别">${player.gender}修</td>
+            <td data-label="境界"><span class="badge realm">${player.realm}</span></td>
+            <td data-label="修为">${player.cultivation.toLocaleString()}</td>
+            <td data-label="灵石">${player.spirit_stones.toLocaleString()}</td>
+            <td data-label="寿元">${player.lifespan} / ${player.lifespan_max}</td>
+            <td data-label="灵根">${player.spirit_root}</td>
+            <td data-label="宗门">${player.sect || "-"}</td>
+            <td data-label="修炼状态">${player.cultivation_status || "-"}</td>
+            <td data-label="闭关设定">${player.cultivating_years_display || "-"}</td>
+            <td data-label="闭关剩余">${player.retreat_remaining || "-"}</td>
+            <td data-label="所在城市">${player.current_city}</td>
+            <td data-label="状态"><span class="badge ${statusClass}">${statusText}</span></td>
+            <td data-label="最后活跃">${player.last_active_formatted}</td>
+            <td data-label="发现宗门">${sects}</td>
+            <td data-label="装备功法">${equipped}</td>
+            <td data-label="探险次数">${player.explore_count || 0}</td>
+            <td data-label="最近探险城市">${player.current_city || '-'}</td>
         `;
         tbody.appendChild(row);
     });
@@ -215,10 +216,10 @@ function sortTable(column) {
 }
 
 function bindEvents() {
-        document.getElementById("refreshBtn").addEventListener("click", () => {
-            loadData();
-            loadQuests();
-        });
+    document.getElementById("refreshBtn").addEventListener("click", () => {
+        loadData();
+        loadQuests();
+    });
 
     document.getElementById("searchInput").addEventListener("input", () => {
         applyFilters();
@@ -244,7 +245,67 @@ function bindEvents() {
     });
 }
 
+function activateNav(targetId) {
+    document.querySelectorAll(".nav-link").forEach((link) => {
+        link.classList.toggle("active", link.dataset.target === targetId);
+    });
+}
+
+function showSection(targetId) {
+    const safeTargetId = sectionIds.includes(targetId) ? targetId : "home";
+
+    sectionIds.forEach((sectionId) => {
+        const sectionEl = document.getElementById(sectionId);
+        if (!sectionEl) return;
+        sectionEl.classList.toggle("is-active", sectionId === safeTargetId);
+    });
+
+    activateNav(safeTargetId);
+}
+
+function setupNavigation() {
+    const navLinks = document.querySelectorAll(".nav-link");
+
+    navLinks.forEach((link) => {
+        link.addEventListener("click", (event) => {
+            event.preventDefault();
+            const targetId = link.dataset.target;
+            showSection(targetId);
+
+            if (targetId === "quest") {
+                loadQuests();
+            }
+
+            window.history.replaceState(null, "", `#${targetId}`);
+        });
+    });
+
+    const hashTarget = window.location.hash.replace("#", "");
+    showSection(hashTarget || "home");
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    // PWA install prompt logic
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("installPwaBtn");
+    window.addEventListener("beforeinstallprompt", (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBtn) installBtn.style.display = "inline-block";
+    });
+    if (installBtn) {
+        installBtn.addEventListener("click", async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const choiceResult = await deferredPrompt.userChoice;
+                if (choiceResult.outcome === "accepted") {
+                    installBtn.style.display = "none";
+                }
+                deferredPrompt = null;
+            }
+        });
+    }
+    setupNavigation();
     bindEvents();
     loadData();
     loadQuests();
