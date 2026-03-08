@@ -109,6 +109,59 @@ def api_players():
         }), 500
 
 
+@app.route('/api/quests')
+def api_quests():
+    """API endpoint to get active quests"""
+    try:
+        with get_conn() as conn:
+            rows = conn.execute("""
+                SELECT 
+                    name, discord_id, active_quest, quest_due
+                FROM players
+                WHERE active_quest IS NOT NULL AND is_dead = 0
+                ORDER BY quest_due ASC
+            """).fetchall()
+        
+        quests = []
+        now = time.time()
+        for row in rows:
+            player = dict(row)
+            try:
+                quest_data = json.loads(player['active_quest'])
+            except:
+                continue
+            
+            quest_due = player['quest_due']
+            remaining = quest_due - now if quest_due and quest_due > now else 0
+            is_complete = quest_due and now >= quest_due
+            
+            quests.append({
+                'player_name': player['name'],
+                'discord_id': player['discord_id'],
+                'quest_id': quest_data.get('id', ''),
+                'quest_title': quest_data.get('title', '未知任务'),
+                'quest_type': quest_data.get('type', ''),
+                'quest_desc': quest_data.get('desc', ''),
+                'quest_due': quest_due,
+                'quest_due_formatted': format_timestamp(quest_due) if quest_due else '-',
+                'remaining_seconds': remaining,
+                'remaining_formatted': format_remaining_years(remaining * 2 * 3600) if remaining > 0 else '已完成',
+                'is_complete': is_complete,
+                'status': '可完成' if is_complete else '进行中'
+            })
+        
+        return jsonify({
+            'success': True,
+            'total': len(quests),
+            'quests': quests
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
 @app.route('/api/stats')
 def api_stats():
     """API endpoint to get overall statistics"""

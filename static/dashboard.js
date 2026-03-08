@@ -38,6 +38,7 @@ async function loadData() {
 
         applyFilters();
         renderTable();
+        loadQuests();
     } catch (error) {
         document.getElementById("loading").style.display = "none";
         document.getElementById("error").style.display = "block";
@@ -195,6 +196,11 @@ function sortTable(column) {
 }
 
 function bindEvents() {
+        document.getElementById("refreshBtn").addEventListener("click", () => {
+            loadData();
+            loadQuests();
+        });
+
     document.getElementById("searchInput").addEventListener("input", () => {
         applyFilters();
         renderTable();
@@ -210,9 +216,6 @@ function bindEvents() {
         });
     });
 
-    document.getElementById("refreshBtn").addEventListener("click", () => {
-        loadData();
-    });
 
     document.querySelectorAll("th[data-sort]").forEach((th) => {
         th.style.cursor = "pointer";
@@ -225,5 +228,75 @@ function bindEvents() {
 document.addEventListener("DOMContentLoaded", () => {
     bindEvents();
     loadData();
-    setInterval(loadData, 30000);
+    loadQuests();
+    setInterval(() => {
+        loadData();
+        loadQuests();
+    }, 30000);
 });
+
+async function loadQuests() {
+    try {
+        document.getElementById("questLoading").style.display = "block";
+        document.getElementById("questError").style.display = "none";
+        document.getElementById("questList").innerHTML = "";
+        document.getElementById("noQuests").style.display = "none";
+
+        const response = await fetch("/api/quests");
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || "加载任务失败");
+        }
+
+        document.getElementById("questLoading").style.display = "none";
+
+        if (data.total === 0) {
+            document.getElementById("noQuests").style.display = "block";
+            document.getElementById("questPanel").style.display = "none";
+            return;
+        }
+
+        document.getElementById("questPanel").style.display = "block";
+        document.getElementById("questCount").textContent = data.total;
+        renderQuests(data.quests);
+    } catch (error) {
+        document.getElementById("questLoading").style.display = "none";
+        document.getElementById("questError").style.display = "block";
+        document.getElementById("questError").textContent = "加载任务失败: " + error.message;
+    }
+}
+
+function renderQuests(quests) {
+    const questList = document.getElementById("questList");
+    questList.innerHTML = "";
+
+    quests.forEach((quest) => {
+        const questItem = document.createElement("div");
+        questItem.className = "quest-item" + (quest.is_complete ? " complete" : "");
+
+        const typeLabel = quest.quest_type === "combat" ? "战斗" : quest.quest_type === "gather" ? "采集" : quest.quest_type;
+        const typeClass = quest.quest_type === "combat" ? "combat" : "gather";
+        const statusClass = quest.is_complete ? "complete" : "progress";
+
+        questItem.innerHTML = `
+            <div class="quest-item-header">
+                <div>
+                    <div class="quest-title">
+                        ${quest.quest_title}
+                        <span class="quest-type-badge ${typeClass}">${typeLabel}</span>
+                    </div>
+                    <div class="quest-player">👤 ${quest.player_name}</div>
+                </div>
+                <span class="quest-status ${statusClass}">${quest.status}</span>
+            </div>
+            <div class="quest-desc">${quest.quest_desc}</div>
+            <div class="quest-time">
+                <span>⏰ ${quest.quest_due_formatted}</span>
+                <span>${quest.remaining_formatted}</span>
+            </div>
+        `;
+
+        questList.appendChild(questItem);
+    });
+}
