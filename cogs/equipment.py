@@ -126,13 +126,30 @@ class EquipmentCog(commands.Cog, name="Equipment"):
 
         if "lifespan" in effect:
             gain = effect["lifespan"]
+            if player["lifespan"] >= player["lifespan_max"]:
+                return await ctx.send(
+                    f"{ctx.author.mention} 当前寿元 **{player['lifespan']}年** 已达上限（{player['lifespan_max']}年），"
+                    f"「{item_name}」无法生效。"
+                )
             new_lifespan = min(player["lifespan"] + gain, player["lifespan_max"])
             actual = new_lifespan - player["lifespan"]
             with get_conn() as conn:
                 conn.execute("UPDATE players SET lifespan = ? WHERE discord_id = ?", (new_lifespan, uid))
                 conn.commit()
             remove_item(uid, item_name)
-            return await ctx.send(f"{ctx.author.mention} 服用「{item_name}」，寿元恢复 **+{actual}年**（当前 {new_lifespan} 年）。")
+            return await ctx.send(f"{ctx.author.mention} 服用「{item_name}」，寿元恢复 **+{actual}年**（当前 {new_lifespan}/{player['lifespan_max']} 年）。")
+
+        if "lifespan_extend" in effect:
+            gain = effect["lifespan_extend"]
+            new_lifespan = player["lifespan"] + gain
+            with get_conn() as conn:
+                conn.execute("UPDATE players SET lifespan = ? WHERE discord_id = ?", (new_lifespan, uid))
+                conn.commit()
+            remove_item(uid, item_name)
+            over = ""
+            if new_lifespan > player["lifespan_max"]:
+                over = f"（超出上限 {new_lifespan - player['lifespan_max']} 年）"
+            return await ctx.send(f"{ctx.author.mention} 服用「{item_name}」，寿元 **+{gain}年**（当前 {new_lifespan}/{player['lifespan_max']} 年）{over}")
 
         if "cultivation_speed_bonus" in effect:
             remove_item(uid, item_name)
@@ -149,6 +166,58 @@ class EquipmentCog(commands.Cog, name="Equipment"):
             )
 
         await ctx.send(f"{ctx.author.mention} 「{item_name}」暂时无法直接使用。")
+
+
+    @commands.command(name="出售")
+    async def sell_item(self, ctx, *, args: str = None):
+        uid = str(ctx.author.id)
+        if not args:
+            return await ctx.send(f"{ctx.author.mention} 用法：`cat!出售 [物品名] [数量]`，例如 `cat!出售 铜矿石 5`")
+        player = self._get_player(uid)
+        if not player or player["is_dead"]:
+            return await ctx.send(f"{ctx.author.mention} 尚未踏入修仙之路。")
+
+        parts = args.rsplit(" ", 1)
+        item_name = parts[0].strip()
+        quantity = 1
+        if len(parts) == 2:
+            try:
+                quantity = int(parts[1])
+            except ValueError:
+                item_name = args.strip()
+        if quantity < 1:
+            return await ctx.send(f"{ctx.author.mention} 数量需大于 0。")
+
+        from utils.items import ITEMS
+        from utils.db import get_inventory, remove_item
+        item_info = ITEMS.get(item_name)
+        if not item_info:
+            return await ctx.send(f"{ctx.author.mention} 未知物品「{item_name}」。")
+        sell_price = item_info.get("sell_price", 0)
+        if sell_price <= 0:
+            return await ctx.send(f"{ctx.author.mention} 「{item_name}」无法出售。")
+
+        inv = get_inventory(uid)
+        owned = inv.get(item_name, 0)
+        if owned < quantity:
+            return await ctx.send(f"{ctx.author.mention} 背包中只有 **{owned}** 个「{item_name}」。")
+
+        total = sell_price * quantity
+        ok = remove_item(uid, item_name, quantity)
+        if not ok:
+            return await ctx.send(f"{ctx.author.mention} 出售失败。")
+
+        with get_conn() as conn:
+            conn.execute(
+                "UPDATE players SET spirit_stones = spirit_stones + ? WHERE discord_id = ?",
+                (total, uid)
+            )
+            conn.commit()
+
+        await ctx.send(
+            f"{ctx.author.mention} 出售 **{item_name}** ×{quantity}，获得 **{total} 灵石**"
+            f"（单价 {sell_price}）。"
+        )
 
 
 async def setup(bot: commands.Bot):

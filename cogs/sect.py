@@ -216,24 +216,11 @@ class SectCog(commands.Cog, name="Sect"):
         if not techniques:
             return await ctx.send(f"{ctx.author.mention} 道友尚未习得任何功法。")
 
-        lines = []
-        for t in techniques:
-            info = TECHNIQUES.get(t["name"], {})
-            equipped_mark = "✦" if t.get("equipped") else "○"
-            lines.append(
-                f"{equipped_mark} **{t['name']}**（{t.get('grade', '?')} · {info.get('type', '未知')}）"
-                f"　阶段：{t.get('stage', '入门')}"
-            )
-
-        embed = discord.Embed(
-            title=f"✦ {player['name']} 的功法 ✦",
-            description="\n".join(lines),
-            color=discord.Color.teal(),
-        )
-        embed.set_footer(text="✦ 已装备　○ 未装备　最多装备5本　使用 cat!装备功法 [功法名] 切换")
-        if player["sect"]:
-            embed.add_field(name="宗门", value=f"{player['sect']} · {player['sect_rank']}", inline=False)
-        await ctx.send(embed=embed)
+        from utils.views.techniques import TechniquesView, _build_techniques_embed
+        cultivation_cog = self.bot.cogs.get("Cultivation")
+        embed = _build_techniques_embed(player)
+        view = TechniquesView(ctx.author, cultivation_cog or self)
+        await ctx.send(ctx.author.mention, embed=embed, view=view)
 
     @commands.command(name="装备功法")
     async def equip_technique(self, ctx, *, name: str):
@@ -338,38 +325,8 @@ class SectCog(commands.Cog, name="Sect"):
         if not player:
             return await ctx.send(f"{ctx.author.mention} 尚未踏入修仙之路。")
 
-        techniques = _parse_techniques(player["techniques"])
-        equipped = [t for t in techniques if t.get("equipped")]
-        if not equipped:
-            return await ctx.send(f"{ctx.author.mention} 当前没有装备任何功法。")
-
-        bonus = calc_technique_stat_bonus(techniques)
-        stat_names = {
-            "comprehension": "悟性", "physique": "体魄", "fortune": "机缘",
-            "bone": "根骨", "soul": "神识", "escape_rate": "逃跑成功率",
-            "cultivation_speed": "修炼速度", "lifespan_bonus": "寿元加成",
-        }
-
-        lines = []
-        for t in equipped:
-            lines.append(f"✦ **{t['name']}**（{t.get('grade', '?')}）阶段：{t.get('stage', '入门')}")
-
-        bonus_lines = []
-        for stat, val in bonus.items():
-            label = stat_names.get(stat, stat)
-            if stat == "cultivation_speed":
-                bonus_lines.append(f"{label} +{val*100:.0f}%")
-            elif stat == "escape_rate":
-                bonus_lines.append(f"{label} +{val:.0f}%")
-            else:
-                bonus_lines.append(f"{label} +{val:.0f}")
-
-        embed = discord.Embed(
-            title="✦ 已装备功法属性加成 ✦",
-            color=discord.Color.teal(),
-        )
-        embed.add_field(name="已装备", value="\n".join(lines), inline=False)
-        embed.add_field(name="总加成", value="\n".join(bonus_lines) if bonus_lines else "无", inline=False)
+        from utils.views.techniques import _build_stats_embed
+        embed = _build_stats_embed(player)
         await ctx.send(embed=embed)
 
 

@@ -30,6 +30,8 @@ def _migrate(conn):
         ("active_quest",         "TEXT"),
         ("quest_due",            "REAL"),
         ("party_id",             "TEXT"),
+        ("gathering_until",      "REAL"),
+        ("gathering_type",       "TEXT"),
     ]
     for col, definition in migrations:
         if col not in existing:
