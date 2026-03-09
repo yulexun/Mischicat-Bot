@@ -3,6 +3,7 @@ import time
 import discord
 from discord.ext import commands
 
+from utils.config import COMMAND_PREFIX
 from utils.db import get_conn, has_residence, get_residences
 from utils.world import get_city, SPECIAL_REGIONS
 from utils.character import (
@@ -31,7 +32,7 @@ class PropertyCog(commands.Cog, name="Property"):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name="买房")
+    @commands.hybrid_command(name="买房", description="在当前城市购买一处居所")
     async def buy_residence(self, ctx):
         uid = str(ctx.author.id)
         player = _get_player(uid)
@@ -82,7 +83,7 @@ class PropertyCog(commands.Cog, name="Property"):
         embed.set_footer(text=f"花费 {price} 灵石")
         await ctx.send(ctx.author.mention, embed=embed)
 
-    @commands.command(name="开辟洞府")
+    @commands.hybrid_command(name="开辟洞府", description="在秘地开辟洞府，获得全局修炼与探险加成")
     async def open_cave(self, ctx, *, region_name: str = None):
         uid = str(ctx.author.id)
         player = _get_player(uid)
@@ -106,7 +107,7 @@ class PropertyCog(commands.Cog, name="Property"):
         if not region_name:
             lines = "\n".join(f"· **{r['name']}**（{r['type']}）— {r['desc']}" for r in SPECIAL_REGIONS)
             return await ctx.send(
-                f"{ctx.author.mention} 请指定秘地名称，用法：`cat!开辟洞府 [秘地名]`\n\n{lines}"
+                f"{ctx.author.mention} 请指定秘地名称，用法：`{COMMAND_PREFIX}开辟洞府 [秘地名]`\n\n{lines}"
             )
 
         target = next((r for r in SPECIAL_REGIONS if r["name"] == region_name), None)
@@ -139,7 +140,7 @@ class PropertyCog(commands.Cog, name="Property"):
         embed.set_footer(text=f"花费 {CAVE_PRICE} 灵石")
         await ctx.send(ctx.author.mention, embed=embed)
 
-    @commands.command(name="我的居所")
+    @commands.hybrid_command(name="我的居所", description="查看自己在各城市的居所与洞府加成")
     async def my_properties(self, ctx):
         uid = str(ctx.author.id)
         player = _get_player(uid)
@@ -151,7 +152,7 @@ class PropertyCog(commands.Cog, name="Property"):
         cave = player.get("cave")
 
         if not residences and not cave:
-            return await ctx.send(f"{ctx.author.mention} 道友尚未置业，可使用 `cat!买房` 在当前城市购置居所。")
+            return await ctx.send(f"{ctx.author.mention} 道友尚未置业，可使用 `{COMMAND_PREFIX}买房` 在当前城市购置居所。")
 
         embed = discord.Embed(title=f"✦ {player['name']} 的居所 ✦", color=discord.Color.teal())
 

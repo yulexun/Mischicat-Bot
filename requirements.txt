@@ -1,6 +1,11 @@
 discord.py
+tzdata
 yt-dlp
 PyNaCl
 python-dotenv
 Flask
 bgutil-ytdlp-pot-provider
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart

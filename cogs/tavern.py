@@ -5,6 +5,7 @@ import random
 import discord
 from discord.ext import commands, tasks
 
+from utils.config import COMMAND_PREFIX
 from utils.db import get_conn
 from utils.quests import get_tavern_quests, get_quest
 from utils.combat import roll_combat, calc_power, roll_escape
@@ -237,7 +238,7 @@ class TavernCog(commands.Cog, name="Tavern"):
                         conn.execute("UPDATE players SET is_dead = 1, lifespan = 0 WHERE discord_id = ?", (uid,))
                         conn.commit()
                     embed.color = discord.Color.dark_red()
-                    embed.add_field(name="☠️ 魂归天道", value=f"逃跑失败（成功率仅 {escape_pct}%），**{enemy['name']}** 给予致命一击。\n**{player['name']}** 就此陨落，魂归天道。\n可使用 `cat!创建角色` 重入修仙之路。", inline=False)
+                    embed.add_field(name="☠️ 魂归天道", value=f"逃跑失败（成功率仅 {escape_pct}%），**{enemy['name']}** 给予致命一击。\n**{player['name']}** 就此陨落，魂归天道。\n可使用 `{COMMAND_PREFIX}创建角色` 重入修仙之路。", inline=False)
                 else:
                     heavy_loss = random.randint(10, 30)
                     with get_conn() as conn:
@@ -316,7 +317,7 @@ class TavernCog(commands.Cog, name="Tavern"):
         self._quest_notifier.cancel()
 
 
-    @commands.command(name="茶馆")
+    @commands.hybrid_command(name="茶馆", description="前往茶馆接取任务或采集委托")
     async def tavern(self, ctx):
         uid = str(ctx.author.id)
         player = _get_player(uid)
@@ -334,11 +335,11 @@ class TavernCog(commands.Cog, name="Tavern"):
             return await ctx.send(
                 f"{ctx.author.mention} 你正在执行任务「**{q_data['title']}**」，"
                 f"还需约 **{remaining:.1f} 游戏年**（现实 {remaining*2:.1f} 小时）。\n"
-                f"任务完成后使用 `cat!交任务` 领取奖励。"
+                f"任务完成后使用 `{COMMAND_PREFIX}交任务` 领取奖励。"
             )
 
         quests = get_tavern_quests(player)
-        if not quests:
+        if not quests or (len(quests) == 1 and "_locked" in quests):
             return await ctx.send(f"{ctx.author.mention} 当前没有适合你境界的任务。")
 
         embed = discord.Embed(
@@ -347,6 +348,9 @@ class TavernCog(commands.Cog, name="Tavern"):
             color=discord.Color.teal(),
         )
         for tier, quest_list in quests.items():
+            if tier == "_locked":
+                embed.add_field(name="🔒 未解锁", value="\n".join(quest_list), inline=False)
+                continue
             dur = GATHER_DURATION[tier]
             lines = []
             for q in quest_list:
@@ -362,7 +366,7 @@ class TavernCog(commands.Cog, name="Tavern"):
         embed.set_footer(text="战斗任务耗时1年 · 采集任务耗时2年 · 任务期间无法闭关")
         await ctx.send(embed=embed, view=TavernView(ctx.author, quests, self))
 
-    @commands.command(name="交任务")
+    @commands.hybrid_command(name="交任务", description="在茶馆结算当前进行中的任务")
     async def submit_quest(self, ctx):
         uid = str(ctx.author.id)
         player = _get_player(uid)
@@ -405,6 +409,8 @@ class TavernView(discord.ui.View):
         self.author = author
         self.cog = cog
         for tier, quest_list in quests.items():
+            if tier == "_locked":
+                continue
             for q in quest_list:
                 self.add_item(QuestButton(q, tier))
 
@@ -462,7 +468,7 @@ class QuestButton(discord.ui.Button):
             embed.add_field(name="目标", value=f"前往 **{q['location']}** 完成采集", inline=False)
         embed.add_field(name="耗时", value=f"**{duration} 游戏年**（现实 {duration*2} 小时）", inline=True)
         embed.add_field(name="奖励预览", value="\n".join(reward_lines), inline=False)
-        embed.set_footer(text="接取后使用 cat!交任务 领取奖励")
+        embed.set_footer(text=f"接取后使用 {COMMAND_PREFIX}交任务 领取奖励")
 
         await interaction.followup.send(
             embed=embed,
@@ -495,6 +501,15 @@ class QuestConfirmView(discord.ui.View):
             return await interaction.followup.send("闭关中无法接取任务，请先结束闭关。", ephemeral=True)
         if player.get("active_quest"):
             return await interaction.followup.send("已有进行中的任务，请先完成。", ephemeral=True)
+        with get_conn() as conn:
+            defense_row = conn.execute(
+                "SELECT 1 FROM public_event_participants ep "
+                "JOIN public_events e ON ep.event_id = e.event_id "
+                "WHERE ep.discord_id = ? AND ep.activity = 'defense' AND e.status = 'active'",
+                (uid,)
+            ).fetchone()
+        if defense_row:
+            return await interaction.followup.send("守城期间无法接取任务，专心守城！", ephemeral=True)
 
         q = self.quest
         duration = GATHER_DURATION[self.tier] if q["type"] == "gather" else QUEST_DURATION[self.tier]
