@@ -214,11 +214,18 @@ class CultivationCog(commands.Cog, name="Cultivation"):
             return await interaction.followup.send(f"道友正在采集中，无法修炼。还剩约 **{remaining:.1f} 年**。")
         if self._is_defending(uid):
             return await interaction.followup.send("守城期间无法修炼，专心守城！", ephemeral=True)
+        from utils.character import SPIRIT_ROOT_SPEED
         bonus = get_cultivation_bonus(uid, player["current_city"], player.get("cave"))
+        root_mult = SPIRIT_ROOT_SPEED.get(player["spirit_root_type"], 1.0)
+        root_label = {
+            "单灵根": "极快", "双灵根": "较快", "三灵根": "普通",
+            "四灵根": "较慢", "五灵根": "迟缓", "变异灵根": "特殊",
+        }.get(player["spirit_root_type"], "未知")
         embed = discord.Embed(
             title="✦ 选择闭关时长 ✦",
             description=(
                 f"当前寿元：**{player['lifespan']} 年**\n"
+                f"灵根速度：**{root_label}（×{root_mult}）**\n"
                 f"修炼加成：**+{int(bonus * 100)}%**\n\n"
                 "请选择本次闭关时长："
             ),
@@ -245,13 +252,12 @@ class CultivationCog(commands.Cog, name="Cultivation"):
         if pill_active:
             bonus += 0.5
         gain = int(calc_cultivation_gain(years, player["comprehension"], player["spirit_root_type"]) * (1 + bonus))
-        new_lifespan = player["lifespan"] - years
         with get_conn() as conn:
             conn.execute("""
-                UPDATE players SET lifespan = ?,
+                UPDATE players SET
                     cultivating_until = ?, cultivating_years = ?, last_active = ?
                 WHERE discord_id = ?
-            """, (new_lifespan, cultivating_until, years, now, uid))
+            """, (cultivating_until, years, now, uid))
             conn.commit()
         needed = cultivation_needed(player["realm"])
         pill_note = "（聚灵丹加持中 +50%）\n" if pill_active else ""
@@ -462,7 +468,7 @@ class CultivationCog(commands.Cog, name="Cultivation"):
                 bonus += 0.5
             gain = int(calc_cultivation_gain(actual_years, player["comprehension"], player["spirit_root_type"]) * (1 + bonus))
         new_cultivation = player["cultivation"] + gain
-        new_lifespan = player["lifespan"]
+        new_lifespan = player["lifespan"] - actual_years
         with get_conn() as conn:
             conn.execute("""
                 UPDATE players SET cultivation = ?, lifespan = ?,
@@ -592,12 +598,11 @@ class CultivationCog(commands.Cog, name="Cultivation"):
         if pill_active:
             bonus += 0.5
         gain = int(calc_cultivation_gain(years, player["comprehension"], player["spirit_root_type"]) * (1 + bonus))
-        new_lifespan = player["lifespan"] - years
         with get_conn() as conn:
             conn.execute("""
-                UPDATE players SET lifespan = ?, cultivating_until = ?, cultivating_years = ?, last_active = ?
+                UPDATE players SET cultivating_until = ?, cultivating_years = ?, last_active = ?
                 WHERE discord_id = ?
-            """, (new_lifespan, cultivating_until, years, now, uid))
+            """, (cultivating_until, years, now, uid))
             conn.commit()
         needed = cultivation_needed(player["realm"])
         pill_note = "（聚灵丹加持中 +50%）\n" if pill_active else ""
@@ -629,7 +634,7 @@ class CultivationCog(commands.Cog, name="Cultivation"):
                 bonus += 0.5
             gain = int(calc_cultivation_gain(actual_years, player["comprehension"], player["spirit_root_type"]) * (1 + bonus))
         new_cultivation = player["cultivation"] + gain
-        new_lifespan = player["lifespan"]
+        new_lifespan = player["lifespan"] - actual_years
         with get_conn() as conn:
             conn.execute("""
                 UPDATE players SET cultivation = ?, lifespan = ?,

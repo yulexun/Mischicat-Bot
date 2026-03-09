@@ -199,7 +199,8 @@ class MenuButton(discord.ui.Button):
             if self.action == "create":
                 ctx = await cog.bot.get_context(interaction.message)
                 ctx.author = interaction.user
-                await cog.create_character(ctx)
+                char_cog = cog.bot.cogs.get("Character") or cog
+                await char_cog.create_character(ctx)
             elif self.action == "profile":
                 await cog.send_profile(interaction)
             elif self.action == "cultivate":

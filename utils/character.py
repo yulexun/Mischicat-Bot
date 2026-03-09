@@ -180,12 +180,21 @@ REPUTATION_CAVE = 600
 
 
 def get_cultivation_bonus(discord_id: str, current_city: str, cave: str) -> float:
-    from utils.db import has_residence
+    from utils.db import has_residence, get_conn
+    import json
     bonus = 0.0
     if has_residence(discord_id, current_city):
         bonus += RESIDENCE_BONUS
     if cave:
         bonus += CAVE_BONUS
+    with get_conn() as conn:
+        row = conn.execute("SELECT techniques FROM players WHERE discord_id = ?", (discord_id,)).fetchone()
+    if row and row["techniques"]:
+        from utils.sects import calc_technique_stat_bonus
+        techs = json.loads(row["techniques"])
+        stat_bonus = calc_technique_stat_bonus(techs)
+        speed_val = stat_bonus.get("cultivation_speed", 0)
+        bonus += speed_val
     return bonus
 
 
